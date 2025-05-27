@@ -1,21 +1,7 @@
-# CRN: Camera Radar Net for Accurate, Robust, Efficient 3D Perception
-
-https://github.com/youngskkim/CRN/assets/24770858/1bf85a3a-ad22-4875-ab0c-deeee347b03f
-
-> [**CRN: Camera Radar Net for Accurate, Robust, Efficient 3D Perception**](https://arxiv.org/abs/2304.00670)  
-> [Youngseok Kim](https://youngskkim.github.io/),
-> Juyeb Shin, Sanmin Kim, In-Jae Lee, 
-> [Jun Won Choi](https://www.spa.hanyang.ac.kr/),
-> [Dongsuk Kum](http://vdclab.kaist.ac.kr/)  
-> [*ICCV 2023*](https://iccv2023.thecvf.com/)
-
+# DEN: Depth Enhancement Network for 3-D Object Detection With the Fusion of mmWave Radar and Vision in Autonomous Driving
 
 ## Abstract
-In this paper, we propose Camera Radar Net (CRN), a novel camera-radar fusion framework that generates a semantically rich and spatially accurate bird's-eye-view (BEV) feature map for various tasks.
-To overcome the lack of spatial information in an image, we transform perspective view image features to BEV with the help of sparse but accurate radar points.
-We further aggregate image and radar feature maps in BEV using multi-modal deformable attention designed to tackle the spatial misalignment between inputs.
-CRN with real-time setting operates at 20 FPS while achieving comparable performance to LiDAR detectors on nuScenes, and even outperforms at a far distance on 100m setting.
-Moreover, CRN with offline setting yields 62.4% NDS, 57.5% mAP on nuScenes test set and ranks first among all camera and camera-radar 3D object detectors.
+In the realm of autonomous driving, precise and robust 3-D perception is paramount. Multimodal fusion for 3-D object detection is crucial for improving accuracy, generalization, and robustness in autonomous driving. In this article, we introduce the depth enhancement network (DEN), an innovative camera-radar fusion framework that generates an accurate depth estimation for 3-D object detection. To overcome the limitations caused by the lack of spatial information in an image, DEN estimates image depth using accurate radar points. Furthermore, to extract more comprehensive and fine-grained scene depth information, we present an innovative label optimization strategy (LOS) that enhances label density and quality. DEN achieves an 18.78% reduction in mean absolute error (MAE) and a 12.8% decrease in root mean-square error (RMSE) for depth estimation. Additionally, it improves 3-D object detection accuracy by 0.8% compared to the baseline model. Under low visibility conditions, DEN demonstrates a 6.7% reduction in MAE and a 9.6% reduction in RMSE compared to the baseline. These improvements demonstrated its robustness and enhanced performance under challenging conditions.
 
 
 ## Getting Started
@@ -23,13 +9,13 @@ Moreover, CRN with offline setting yields 62.4% NDS, 57.5% mAP on nuScenes test 
 ### Installation
 ```shell
 # clone repo
-git clone https://github.com/youngskkim/CRN.git
+git clone https://github.com/Wangwx-code/DEN
 
-cd CRN
+cd DEN
 
 # setup conda environment
-conda env create --file CRN.yaml
-conda activate CRN
+conda env create --file DEN.yaml
+conda activate DEN
 
 # install dependencies
 pip install torch==1.9.1+cu111 torchvision==0.10.1+cu111 -f https://download.pytorch.org/whl/torch_stable.html
@@ -73,9 +59,15 @@ python scripts/gen_radar_bev.py  # accumulate sweeps and transform to LiDAR coor
 python scripts/gen_radar_pv.py  # transform to camera coords
 ```
 
+**Step 5.** Generate enhanced lidar point cloud. 
+```
+python scripts/gen_lidar_enhance.py
+```
+
+
 The folder structure will be as follows:
 ```
-CRN
+DEN
 ├── data
 │   ├── nuScenes
 │   │   ├── nuscenes_infos_train.pkl
@@ -105,12 +97,19 @@ python [EXP_PATH] --ckpt_path [CKPT_PATH] -e -b 4 --gpus 4
 All models use 4 keyframes and are trained without CBGS.  
 All latency numbers are measured with batch size 1, GPU warm-up, and FP16 precision.
 
-|  Method  | Backbone | NDS  | mAP  | FPS  | Params | Config                                                  | Checkpoint                                                                                                  |
-|:--------:|:--------:|:----:|:----:|:----:|:------:|:-------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------:|
-| BEVDepth |   R50    | 47.1 | 36.7 | 29.7 | 77.6 M | [config](exps/det/BEVDepth_r50_256x704_128x128_4key.py) | [model](https://github.com/youngskkim/CRN/releases/download/v1.0/BEVDepth_r50_256x704_128x128_4key.pth) |
-|   CRN    |   R18    | 54.2 | 44.9 | 29.4 | 37.2 M | [config](exps/det/CRN_r18_256x704_128x128_4key.py)      | [model](https://github.com/youngskkim/CRN/releases/download/v1.0/CRN_r18_256x704_128x128_4key.pth)      |
-|   CRN    |   R50    | 56.2 | 47.3 | 22.7 | 61.4 M | [config](exps/det/CRN_r50_256x704_128x128_4key.py)      | [model](https://github.com/youngskkim/CRN/releases/download/v1.0/CRN_r50_256x704_128x128_4key.pth)      |
-
+| Method | Input | Backbone | Image Size | NDS↑ | mAP↑ | mATE↓ | mASE↓ | mAOE↓ | mAVE↓ | mAAE↓ | FPS↑ |
+|--------|-------|----------|------------|------|------|-------|-------|-------|-------|-------|------|
+| BEVDet | C | R50 | 256×704 | 39.2 | 31.2 | 0.691 | 0.272 | 0.523 | 0.909 | 0.247 | - |
+| CenterFusion  | C+R | DLA34 | 448×800 | 45.3 | 33.2 | 0.649 | ​**0.263**​ | 0.535 | 0.540 | ​**0.142**​ | - |
+| CRAFT  | C+R | DLA34 | 448×800 | 51.7 | 41.1 | 0.494 | 0.276 | 0.454 | 0.486 | 0.176 | - |
+| CRN  | C+R | R18 | 256×704 | 54.0 | 44.7 | ​**0.524**​ | 0.286 | 0.567 | 0.278 | 0.181 | 18.80 |
+| PETR  | C | R101 | 900×1600 | 44.2 | 37.0 | 0.711 | 0.267 | 0.383 | 0.865 | 0.201 | - |
+| MVFusion  | C+R | R101 | 900×1600 | 45.5 | 38.0 | 0.675 | 0.258 | 0.372 | 0.833 | 0.196 | - |
+| BEVFormer  | C | R101 | 900×1600 | 51.7 | 41.6 | 0.673 | 0.274 | 0.372 | 0.394 | 0.198 | - |
+| BEVDepth  | C | R101 | 512×1408 | 53.5 | 41.2 | 0.565 | 0.266 | ​**0.358**​ | 0.331 | 0.190 | - |
+| ​**LOS**​ | C+R | R18 | 256×704 | 54.3 | 45.3 | 0.527 | 0.285 | 0.564 | 0.283 | 0.178 | 18.80 |
+| ​**DFM**​ | C+R | R18 | 256×704 | 54.5 | 45.4 | ​**0.524**​ | 0.286 | 0.556 | 0.279 | 0.178 | 18.41 |
+| ​**DEN**​ | C+R | R18 | 256×704 | ​**54.8**​ | ​**45.5**​ | 0.525 | 0.284 | 0.534 | ​**0.272**​ | 0.178 | 18.41 |
 
 ## Features
 - [ ] BEV segmentation checkpoints 
@@ -122,20 +121,21 @@ All latency numbers are measured with batch size 1, GPU warm-up, and FP16 precis
 
 ## Acknowledgement
 This project is based on excellent open source projects:
-- [BEVDepth](https://github.com/Megvii-BaseDetection/BEVDepth)
-- [BEVFormer](https://github.com/fundamentalvision/BEVFormer)
-- [MMDetection3D](https://github.com/open-mmlab/mmdetection3d)
+- [CRN](https://github.com/youngskkim/CRN)
 
 
 ## Citation
 If this work is helpful for your research, please consider citing the following BibTeX entry.
 
 ```bibtex
-@inproceedings{kim2023crn,
-    title={Crn: Camera radar net for accurate, robust, efficient 3d perception},
-    author={Kim, Youngseok and Shin, Juyeb and Kim, Sanmin and Lee, In-Jae and Choi, Jun Won and Kum, Dongsuk},
-    booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
-    pages={17615--17626},
-    year={2023}
+@inproceedings{wang2025den,
+    title={DEN: Depth Enhancement Network for 3-D Object Detection With the Fusion of mmWave Radar and Vision in Autonomous Driving},
+    author={Wang, Wenxiang and Han, Jianping and Jiang, Zhongmin and Zhou, Zhiyuan and Wu, Yingxiao},
+    booktitle={IEEE Internet of Things Journal},
+    volume={12},
+    number={10},
+    pages={14420--14430},
+    year={2025},
+    doi={10.1109/JIOT.2025.3525899}
 }
 ```

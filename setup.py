@@ -43,11 +43,11 @@ def make_cuda_ext(name,
 
 
 setup(
-    name='CRN',
+    name='DEN',
     version='0.0.1',
     author='KAIST',
     author_email='youngseok.kim@kaist.ac.kr',
-    description='Code for CRN',
+    description='Code for DEN',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url=None,
